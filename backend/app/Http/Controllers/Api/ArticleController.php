@@ -13,7 +13,9 @@ class ArticleController extends Controller
     {
         if ($request->boolean('latest')) {
             return response()->json(
-                Article::latest()->first()
+                Article::where('is_generated', false)
+                    ->orderBy('created_at', 'desc')
+                    ->first()
             );
         }
 
@@ -32,10 +34,12 @@ class ArticleController extends Controller
         $data = $request->validate([
             'title' => 'required|string',
             'content' => 'required|string',
+            'source_url' => 'nullable|string',
+            'is_generated' => 'required|integer',
+            'parent_article_id' => 'nullable|integer|exists:articles,id',
         ]);
 
         $data['slug'] = Str::slug($data['title']);
-        $data['is_generated'] = false;
 
         $article = Article::create($data);
 
@@ -67,14 +71,27 @@ class ArticleController extends Controller
 
     public function latest()
     {
-        $article = Article::orderBy('created_at', 'desc')->first();
+        $article = Article::where('is_generated', false)
+            ->where('is_processed', false)
+            ->orderBy('created_at', 'desc')
+            ->first();
 
         if (!$article) {
             return response()->json([
-                'message' => 'No articles found'
+                'message' => 'No unprocessed original articles found'
             ], 404);
         }
 
         return response()->json($article);
+    }
+
+    public function markProcessed(Article $article)
+    {
+        $article->update(['is_processed' => true]);
+        
+        return response()->json([
+            'message' => 'Article marked as processed',
+            'article' => $article
+        ]);
     }
 }

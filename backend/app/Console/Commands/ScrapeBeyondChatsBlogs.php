@@ -127,7 +127,7 @@ class ScrapeBeyondChatsBlogs extends Command
                     'slug' => $slug,
                     'content' => $content,
                     'source_url' => $url,
-                    'is_generated' => false,
+                    'is_generated' => 0,
                 ]);
 
                 $this->info("Saved article: {$title}");

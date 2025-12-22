@@ -20,4 +20,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('articles/latest', [ArticleController::class, 'latest']);
+Route::patch('articles/{article}/mark-processed', [ArticleController::class, 'markProcessed']);
 Route::apiResource('articles', ArticleController::class);

@@ -15,5 +15,7 @@ class Article extends Model
         'content',
         'source_url',
         'is_generated',
+        'parent_article_id',
+        'is_processed',
     ];
 }
