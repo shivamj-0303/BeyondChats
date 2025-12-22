@@ -64,4 +64,17 @@ class ArticleController extends Controller
 
         return response()->json(['message' => 'Deleted']);
     }
+
+    public function latest()
+    {
+        $article = Article::orderBy('created_at', 'desc')->first();
+
+        if (!$article) {
+            return response()->json([
+                'message' => 'No articles found'
+            ], 404);
+        }
+
+        return response()->json($article);
+    }
 }
