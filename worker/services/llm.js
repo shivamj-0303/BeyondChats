@@ -3,7 +3,7 @@ const axios = require('axios');
 async function rewriteArticle(original, references) {
   const prompt = `
 Rewrite the article below to match the tone, structure, and depth
-of the reference articles.
+of the reference articles. Keep the output concise and under 3000 words.
 
 ORIGINAL:
 ${original}
@@ -11,15 +11,18 @@ ${original}
 REFERENCES:
 ${references.join("\n\n")}
 
-Return clean HTML content including a "References" section at the end.
+Return clean, concise HTML content with proper structure. Keep it professional but brief.
 `;
+
+  console.log(`Prompt size: ${prompt.length} characters`);
 
   const res = await axios.post(
     "https://api.groq.com/openai/v1/chat/completions",
     {
       model: "groq/compound-mini",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7
+      temperature: 0.7,
+      max_tokens: 4000
     },
     {
       headers: {
@@ -29,7 +32,10 @@ Return clean HTML content including a "References" section at the end.
     }
   );
 
-  return res.data.choices[0].message.content;
+  const generatedContent = res.data.choices[0].message.content;
+  console.log(`Generated content size: ${generatedContent.length} characters`);
+
+  return generatedContent;
 }
 
 module.exports = { rewriteArticle };
