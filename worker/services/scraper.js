@@ -15,7 +15,12 @@ async function scrapeArticle(url) {
       return null;
     }
 
-    return data.trim();
+    const trimmedData = data.trim();
+    if (trimmedData.length > 5000) {
+      return trimmedData.substring(0, 5000) + '...\n[Content truncated for processing]';
+    }
+
+    return trimmedData;
   } catch (err) {
     console.warn(`⚠️  Failed to scrape ${url}`);
     return null;

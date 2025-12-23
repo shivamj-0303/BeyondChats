@@ -32,7 +32,7 @@ class ScrapeBeyondChatsBlogs extends Command
         $this->info('Starting BeyondChats blog scrape...');
 
         $client = new Client([
-            'timeout' => 10,
+            'timeout' => 30,
         ]);
 
         $response = $client->get('https://beyondchats.com/blogs/');
@@ -107,10 +107,18 @@ class ScrapeBeyondChatsBlogs extends Command
             try {
                 $this->info("Scraping article: {$url}");
 
-                $html = (string) $client->get($url)->getBody();
-                $articleCrawler = new Crawler($html);
+                $jinaUrl = "https://r.jina.ai/{$url}";
+                $response = $client->get($jinaUrl);
+                $content = (string) $response->getBody();
 
-                $title = trim($articleCrawler->filter('h1')->first()->text());
+                preg_match('/Title: (.+)/m', $content, $titleMatches);
+                $title = isset($titleMatches[1]) ? trim(str_replace(' - Beyondchats', '', $titleMatches[1])) : '';
+
+                if (empty($title)) {
+                    $this->error("Failed to extract title from {$url}");
+                    continue;
+                }
+
                 $slug = Str::slug($title);
 
                 if (Article::where('slug', $slug)->exists()) {
@@ -118,19 +126,25 @@ class ScrapeBeyondChatsBlogs extends Command
                     continue;
                 }
 
-                $content = $articleCrawler->filter('article')->count()
-                    ? $articleCrawler->filter('article')->html()
-                    : implode("\n", $articleCrawler->filter('p')->each(fn ($p) => $p->text()));
+                preg_match('/Markdown Content:\s*(.+)/s', $content, $contentMatches);
+                $markdownContent = isset($contentMatches[1]) ? trim($contentMatches[1]) : '';
+
+                if (empty($markdownContent)) {
+                    $this->error("Failed to extract content from {$url}");
+                    continue;
+                }
 
                 Article::create([
                     'title' => $title,
                     'slug' => $slug,
-                    'content' => $content,
+                    'content' => $markdownContent,
                     'source_url' => $url,
                     'is_generated' => 0,
                 ]);
 
                 $this->info("Saved article: {$title}");
+
+                sleep(2);
             } catch (\Throwable $e) {
                 $this->error("Failed to scrape {$url}: {$e->getMessage()}");
             }

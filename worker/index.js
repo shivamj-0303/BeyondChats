@@ -4,8 +4,6 @@ const { getLatestArticle, publishArticle, markArticleProcessed } = require('./se
 const { searchGoogle } = require('./services/google');
 const { scrapeArticle } = require('./services/scraper');
 const { rewriteArticle } = require('./services/llm');
-console.log('SERPAPI key:', process.env.SERPAPI_API_KEY);
-
 
 function normalizeTitle(title) {
   return title.replace(/\s*\(Updated\)$/i, '').trim();
