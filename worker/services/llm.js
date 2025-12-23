@@ -11,7 +11,9 @@ ${original}
 REFERENCES:
 ${references.join("\n\n")}
 
-Return clean, concise HTML content with proper structure. Keep it professional but brief.
+Return ONLY clean markdown content. Do NOT wrap it in code blocks or HTML tags.
+Use markdown formatting (headings, lists, links, bold, italic).
+Start directly with the content, no preamble.
 `;
 
   console.log(`Prompt size: ${prompt.length} characters`);
@@ -32,7 +34,14 @@ Return clean, concise HTML content with proper structure. Keep it professional b
     }
   );
 
-  const generatedContent = res.data.choices[0].message.content;
+  let generatedContent = res.data.choices[0].message.content;
+  
+  // Strip markdown code block wrapper if present
+  generatedContent = generatedContent
+    .replace(/^```(?:html|markdown|md)?\s*/i, '')
+    .replace(/\s*```\s*$/, '')
+    .trim();
+
   console.log(`Generated content size: ${generatedContent.length} characters`);
 
   return generatedContent;
